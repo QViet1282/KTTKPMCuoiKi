@@ -2,19 +2,19 @@ import React, { useState, useEffect } from "react";
 import '../CSS/Add_subject.css';
 import { Divider, Space, Table, Button, Select } from "antd";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Add_subject() {
   const [selectedFaculty, setSelectedFaculty] = useState("");
   const [selectedMajor, setSelectedMajor] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
-  const [subjectList, setSubjectList] = useState([]);
   const [registeredSubjects, setRegisteredSubjects] = useState({});
   const [majorCourses, setMajorCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [majors, setMajors] = useState([]);
   const [semesters, setSemesters] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     fetchDepartments();
   }, []);
@@ -83,41 +83,56 @@ function Add_subject() {
     }
   };
 
-  const handleAddSubject = (subject) => {
-    if (
-      subject &&
-      !subjectList.some(
-        (item) =>
-          item.subject === subject
-      )
-    ) {
-      setSubjectList([
-        ...subjectList,
-        {
-          faculty: selectedFaculty,
-          major: selectedMajor,
-          subject: subject,
-          semester: selectedSemester,
-        },
-      ]);
+  const handleAddSubject = async (record) => {
+    try {
+      console.log('fsg',record);
+      await axios.post('http://localhost:8080/semester-course/add', {
+        courseId: record.key,
+        semesterId: selectedSemester
+      });
+      // setSelectedCourses([...selectedCourses, { courseName: record.courseName }]);
+      fetchCourseByMajor()
+      fetchCourseSelected()
+    } catch (error) {
+      console.error("Error adding subject", error);
     }
   };
 
-  const handleRegisterSubject = (subject) => {
-    setRegisteredSubjects({
-      ...registeredSubjects,
-      [subject]: true,
-    });
+  // const handleRegisterSubject = (subject) => {
+  //   setRegisteredSubjects({
+  //     ...registeredSubjects,
+  //     [subject]: true,
+  //   });
+  // };
+
+  const handleCourseClass = async (record) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/semester-course/get?courseId=${record.key}&semesterId=${selectedSemester}`);
+      const semesterCourse = response.data[0];
+      // console.log(response.data);
+      navigate(`/app/add_classes`, { state: { semesterCourse, selectedFaculty } });
+    } catch (error) {
+      console.error("Error removing subject", error);
+    }
+  };
+  const renderTableData = () => {
+    const filteredCourses = majorCourses.filter(
+      (course) => !selectedCourses.some((selected) => selected.courseName === course.courseName)
+    );
+
+    return filteredCourses.map((course, index) => ({
+      key: course.courseId,
+      stt: index + 1,
+      subject: course.courseName,
+    }));
   };
 
-  const handleUnregisterSubject = (subject) => {
-    setRegisteredSubjects((prev) => {
-      const newRegisteredSubjects = { ...prev };
-      delete newRegisteredSubjects[subject];
-      return newRegisteredSubjects;
-    });
-
-    setSubjectList((prev) => prev.filter((item) => item.subject !== subject));
+  const renderRegisteredSubjects = () => {
+    return selectedCourses.map((item, index) => ({
+      key: item.courseId,
+      stt: index + 1,
+      subject: item.courseName,
+    }));
   };
 
   const renderColumns = () => {
@@ -137,44 +152,47 @@ function Add_subject() {
         key: "action",
         render: (_, record) => (
           <Space size="middle">
-            {!registeredSubjects[record.subject] && (
               <Button
                 type="primary"
-                onClick={() => handleAddSubject(record.subject)}
+                onClick={() => handleAddSubject(record)}
               >
                 Thêm
               </Button>
-            )}
-            {registeredSubjects[record.subject] && (
-              <Button type="danger" onClick={() => handleUnregisterSubject(record.subject)}>
-                Hủy
-              </Button>
-            )}
+          </Space>
+        ),
+      },
+    ];
+  };
+  const renderColumns2 = () => {
+    return [
+      {
+        title: "STT",
+        dataIndex: "stt",
+        key: "stt",
+      },
+      {
+        title: "Môn học",
+        dataIndex: "subject",
+        key: "subject",
+      },
+      {
+        title: "Hành động",
+        key: "action",
+        render: (_, record) => (
+          <Space size="middle">
+            <Button
+              type="primary"
+              onClick={() => handleCourseClass(record)}
+            >
+              Lớp
+            </Button>
           </Space>
         ),
       },
     ];
   };
 
-  const renderTableData = () => {
-    const filteredCourses = majorCourses.filter(
-      (course) => !subjectList.some((selected) => selected.subject === course.subjectId)
-    );
-
-    return filteredCourses.map((course, index) => ({
-      key: index,
-      stt: index + 1,
-      subject: course.courseName,
-    }));
-  };
-
-  const renderRegisteredSubjects = () => {
-    return subjectList.map((item, index) => ({
-      key: index,
-      stt: index + 1,
-      subject: item.subject,
-    }));
-  };
+  
 
   return (
     <div>
@@ -257,7 +275,7 @@ function Add_subject() {
             <Divider />
             <h2 className="text-primary">Các môn đã chọn</h2>
             <Table
-              columns={renderColumns()}
+              columns={renderColumns2()}
               dataSource={renderRegisteredSubjects()}
             />
           </div>

@@ -6,6 +6,7 @@ import vn.edu.iuh.fit.baitapck.dto.CourseDTO;
 import vn.edu.iuh.fit.baitapck.entities.Course;
 import vn.edu.iuh.fit.baitapck.entities.Student;
 import vn.edu.iuh.fit.baitapck.repositories.CourseRepository;
+import vn.edu.iuh.fit.baitapck.repositories.SemesterCourseRepository;
 import vn.edu.iuh.fit.baitapck.repositories.StudentRepository;
 import vn.edu.iuh.fit.baitapck.service.CourseService;
 
@@ -18,6 +19,8 @@ public class CourseServiceImpl implements CourseService {
     private CourseRepository courseRepository;
     @Autowired
     private StudentRepository studentRepository;
+    @Autowired
+    private SemesterCourseRepository semesterCourseRepository;
 
     @Override
     public List<CourseDTO> findAllByMajorId(Long MajorId) {
@@ -25,10 +28,10 @@ public class CourseServiceImpl implements CourseService {
         return courses.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    public List<CourseDTO> findCoursesAvailableForStudentRegistration(Long studentId) {
+    public List<CourseDTO> findCoursesAvailableForStudentRegistration(Long studentId, Long semesterId) {
         Student student = studentRepository.findById(studentId).orElse(null);
         if (student != null) {
-            List<Course> allCourses = courseRepository.findAllByMajorMajorId(student.getMajor().getMajorId());
+            List<Course> allCourses = semesterCourseRepository.findSelectedCoursesByMajorIdAndSemesterId(student.getMajor().getMajorId(),semesterId);
             List<Course> studentEnrollmented = courseRepository.findByEnrollments_Student_Id(studentId);
             List<Course> studentWaitListEnrollmented = courseRepository.findByWaitList_Enrollments_Student_Id(studentId);
             // Lọc các khóa học mà sinh viên đã đăng ký

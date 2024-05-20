@@ -30,8 +30,8 @@ public class CourseController {
     }
 
     @GetMapping("/available-courses")
-    public ResponseEntity<List<CourseDTO>> getCoursesAvailableForStudentRegistration(@RequestParam Long studentId) {
-        List<CourseDTO> availableCourses = courseService.findCoursesAvailableForStudentRegistration(studentId);
+    public ResponseEntity<List<CourseDTO>> getCoursesAvailableForStudentRegistration(@RequestParam Long studentId, @RequestParam Long semesterId) {
+        List<CourseDTO> availableCourses = courseService.findCoursesAvailableForStudentRegistration(studentId, semesterId);
         if (availableCourses != null) {
             return ResponseEntity.ok(availableCourses);
         } else {

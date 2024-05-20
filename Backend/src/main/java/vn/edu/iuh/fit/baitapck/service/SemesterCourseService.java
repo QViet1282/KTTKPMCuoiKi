@@ -9,4 +9,6 @@ public interface SemesterCourseService {
     List<CourseDTO> findSelectedCoursesByMajorIdAndSemesterId(Long majorId, Long semesterId);
 
     SemesterCourse addCourseToSemester(Long semesterId, Long courseId);
+
+    public List<SemesterCourse> findSemesterCoursesBySemesterIdAndSemesterId(Long majorId, Long semesterId);
 }

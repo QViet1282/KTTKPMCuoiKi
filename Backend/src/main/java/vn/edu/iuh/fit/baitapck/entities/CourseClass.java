@@ -23,7 +23,7 @@ public class CourseClass {
     @Column(name = "course_class_id")
     private Long courseClassId;
 
-    @JsonIgnore
+//    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "semester_course_id", nullable = false)
     private SemesterCourse semesterCourse;
@@ -41,7 +41,7 @@ public class CourseClass {
     private String location;
 
     @ManyToOne
-//    @Column(name = "instructor", nullable = true)
+    @JoinColumn(name = "teacher_id", nullable = true)
     private Teacher instructor;
 
     @Column(name = "start_date", nullable = true)

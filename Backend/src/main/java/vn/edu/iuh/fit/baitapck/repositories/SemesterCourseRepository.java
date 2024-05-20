@@ -11,4 +11,7 @@ import java.util.List;
 public interface SemesterCourseRepository extends JpaRepository<SemesterCourse, Long> {
     @Query("SELECT sc.course FROM SemesterCourse sc WHERE sc.course.major.majorId = :majorId AND sc.semester.semesterId = :semesterId")
     List<Course> findSelectedCoursesByMajorIdAndSemesterId(@Param("majorId") Long majorId, @Param("semesterId") Long semesterId);
+
+    @Query("SELECT sc FROM SemesterCourse sc WHERE sc.course.courseId = :courseId AND sc.semester.semesterId = :semesterId")
+    List<SemesterCourse> findSemesterCoursesByCourseIdAndSemesterId(@Param("courseId") Long courseId, @Param("semesterId") Long semesterId);
 }

@@ -28,6 +28,7 @@ function Login() {
       password: password
     });
     console.log('student login:', response.data);
+    await AsyncStorage.setItem("auth", JSON.stringify(response.data));
     navigate("app", { state: { role: "student" } });
   };
 
@@ -37,7 +38,7 @@ function Login() {
       password: password
     });
     console.log('admin login:', response.data);
-    AsyncStorage.setItem("auth", JSON.stringify(response.data));
+    await AsyncStorage.setItem("auth", JSON.stringify(response.data));
     navigate("app", { state: { role: "admin" } });
   };
 

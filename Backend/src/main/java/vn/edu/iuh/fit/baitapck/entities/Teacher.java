@@ -24,7 +24,7 @@ public class Teacher {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String adminCode;
+    private String teacherCode;
 
     @Column(nullable = false)
     private String password;
@@ -46,18 +46,18 @@ public class Teacher {
 
     @JsonIgnore
     @ManyToOne
-    private Major major;
+    private Department department;
 
-    public Teacher(Long teacherId, String name, String adminCode, String password, String email, String phone, String address, Date dob, String gender, Major major) {
+    public Teacher(Long teacherId, String name, String teacherCode, String password, String email, String phone, String address, Date dob, String gender, Department department) {
         this.teacherId = teacherId;
         this.name = name;
-        this.adminCode = adminCode;
+        this.teacherCode = teacherCode;
         this.password = password;
         this.email = email;
         this.phone = phone;
         this.address = address;
         this.dob = dob;
         this.gender = gender;
-        this.major = major;
+        this.department = department;
     }
 }

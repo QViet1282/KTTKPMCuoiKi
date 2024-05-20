@@ -32,4 +32,9 @@ public class SemesterCourseController {
         return temp != null ? ResponseEntity.ok(temp) : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
+    @GetMapping("/get")
+    public List<SemesterCourse> getSemesterCourses(@RequestParam Long courseId, @RequestParam Long semesterId) {
+        return semesterCourseService.findSemesterCoursesBySemesterIdAndSemesterId(courseId, semesterId);
+    }
+
 }

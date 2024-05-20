@@ -58,5 +58,10 @@ public class SemesterCourseServiceImpl implements SemesterCourseService {
         return null;
     }
 
+    @Override
+    public List<SemesterCourse> findSemesterCoursesBySemesterIdAndSemesterId(Long majorId, Long semesterId) {
+        return semesterCourseRepository.findSemesterCoursesByCourseIdAndSemesterId(majorId, semesterId);
+    }
+
 
 }

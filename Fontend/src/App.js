@@ -40,7 +40,7 @@ function App() {
                     </p>
                   </div>
                   <button type="button" className="btn btn-warning">
-                    Đăng xuất
+                    <Link to="/">Đăng xuất</Link>
                   </button>
                 </div>
               </div>
@@ -52,9 +52,9 @@ function App() {
                 <div className="col-md-6 w-auto">
                   {role === 'admin' && (
                     <>
-                      <p>
+                      {/* <p>
                         <Link to="/app/add_classes">THÊM LỚP HỌC PHẦN</Link>
-                      </p>
+                      </p> */}
                       <p>
                         <Link to="/app/add_lesson">THÊM LỚP MÔN HỌC PHẦN</Link>
                       </p>
@@ -62,17 +62,17 @@ function App() {
                   )}
                   {role === 'student' && (
                     <p>
-                    <Link to="/app/register_subject">ĐĂNG KÝ HỌC PHẦN</Link>
-                  </p>
+                      <Link to="/app/register_subject">ĐĂNG KÝ HỌC PHẦN</Link>
+                    </p>
                   )}
-                  
+
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <Outlet/>
+      <Outlet />
     </div>
   );
 }

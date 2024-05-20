@@ -1,20 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { Divider, Table, Button, Select } from 'antd';
+import axios from 'axios';
 import "../CSS/Register_subject.css";
-import { Divider, Table } from "antd";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Register_subject() {
-  const [selectionType] = useState("checkbox");
+  const [availableCourses, setAvailableCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
+  const [courseClasses, setCourseClasses] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [semesters, setSemesters] = useState([]);
+  const fetchUser = async () => {
+    const userString = await AsyncStorage.getItem("auth");
+    const user = JSON.parse(userString);
+    const userId = user.studentNumber;
+    setUserId(userId)
+  };
+
+
+  const fetchSemester = async () => {
+    try {
+      const semestersResponse = await axios.get('http://localhost:8080/semester/all');
+      setSemesters(semestersResponse.data);
+      console.log('Semesters:', semestersResponse.data);
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
+
+  const fetchAvailableCourses = async () => {
+    try {
+      const availableCoursesResponse = await axios.get(`http://localhost:8080/course/available-courses?studentId=${userId}&semesterId=${selectedSemester}`);
+      setAvailableCourses(availableCoursesResponse.data);
+      console.log('Available Courses:', availableCoursesResponse.data);
+    } catch (error) {
+      console.error("Error fetching available courses", error);
+    }
+  };
+
+  const fetchCourseClasses = async (courseId) => {
+    try {
+      const courseClassesResponse = await axios.get(`http://localhost:8080/course-class/find-by-course-id?courseId=${courseId}`);
+      setCourseClasses(courseClassesResponse.data);
+      console.log('Course Classes:', courseClassesResponse.data);
+    } catch (error) {
+      console.error("Error fetching course classes", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
+    fetchSemester()
+  }, []);
+
+  useEffect(() => {
+    if (selectedSemester!='')
+      fetchAvailableCourses();
+  }, [userId,selectedSemester]);
 
   const columns = [
     {
       title: "STT",
-      dataIndex: "stt",
-      render: (text) => <a>{text}</a>,
+      dataIndex: "courseId",
+      render: (text, record, index) => <span>{index + 1}</span>,
     },
     {
       title: "Môn học",
-      dataIndex: "course",
+      dataIndex: "courseName",
     },
     {
       title: "Học phí",
@@ -22,138 +75,64 @@ function Register_subject() {
     },
     {
       title: "Tín chỉ",
-      dataIndex: "creditHours",
+      dataIndex: "creditHour",
     },
     {
       title: "Môn tiên quyết",
       dataIndex: "prerequisites",
+      render: (text) => text.join(", "),
+    },
+    {
+      title: "Hành động",
+      render: (text, record) => (
+        <Button onClick={() => handleRowSelection(record)}>Chọn</Button>
+      ),
     },
   ];
 
-  const rawData = [
-    {
-      key: "1",
-      course: "Introduction to Programming",
-      creditFee: 1000,
-      creditHours: 3,
-      prerequisites: "",
-    },
-    {
-      key: "2",
-      course: "Data Structures",
-      creditFee: 1200,
-      creditHours: 4,
-      prerequisites: "Introduction to Programming",
-    },
-    {
-      key: "3",
-      course: "Algorithms",
-      creditFee: 1300,
-      creditHours: 4,
-      prerequisites: "Data Structures",
-    },
-    {
-      key: "4",
-      course: "Database Systems",
-      creditFee: 1100,
-      creditHours: 3,
-      prerequisites: "Introduction to Programming",
-    },
-    {
-      key: "5",
-      course: "Operating Systems",
-      creditFee: 1250,
-      creditHours: 4,
-      prerequisites: "Data Structures",
-    },
-    {
-      key: "6",
-      course: "Software Engineering",
-      creditFee: 1400,
-      creditHours: 4,
-      prerequisites: "Introduction to Programming",
-    },
-    {
-      key: "7",
-      course: "Computer Networks",
-      creditFee: 1150,
-      creditHours: 3,
-      prerequisites: "Introduction to Programming",
-    },
-    {
-      key: "8",
-      course: "Artificial Intelligence",
-      creditFee: 1500,
-      creditHours: 4,
-      prerequisites: "Algorithms",
-    },
-    {
-      key: "9",
-      course: "Machine Learning",
-      creditFee: 1600,
-      creditHours: 4,
-      prerequisites: "Artificial Intelligence",
-    },
-    {
-      key: "10",
-      course: "Cyber Security",
-      creditFee: 1450,
-      creditHours: 4,
-      prerequisites: "Computer Networks",
-    },
-  ];
-
-  const data = rawData.map((item, index) => ({
-    ...item,
-    stt: index + 1,
-  }));
-
-  const rowSelection = {
-    type: selectionType,
-    onChange: (selectedRowKeys, selectedRows) => {
-      setSelectedCourses(selectedRows);
-    },
-    getCheckboxProps: (record) => ({
-      disabled: record.name === "Disabled User",
-      name: record.name,
-    }),
+  const handleRowSelection = (record) => {
+    setSelectedCourses([...selectedCourses, record]);
   };
-
+  console.log(availableCourses);
   return (
     <div>
-      <div className="register_subject">
-        <div className="row w-25">
-          <div className="col-md-6">
-            <b>Đợt đăng ký</b>
-          </div>
-          <div className="col-md-6">
-            <select
-              className="form-select form-select-sm"
-              aria-label=".form-select-sm example"
-            >
-              <option selected>Học kỳ</option>
-              <option value="1">HK1</option>
-              <option value="2">HK2</option>
-              <option value="3">HK3</option>
-            </select>
-          </div>
-        </div>
+      <div className="row mt-2">
+        <label className="col">Học kỳ: </label>
+        <Select
+          className="col w-25"
+          value={selectedSemester}
+          onChange={(value) => setSelectedSemester(value)}
+          placeholder="Chọn học kỳ"
+        >
+          {semesters.map((semester, index) => (
+            <Select.Option key={index} value={semester.semesterId}>
+              {semester.semesterName}
+            </Select.Option>
+          ))}
+        </Select>
       </div>
       <div className="row">
         <Divider />
+        <h3>Các môn có thể đăng ký:</h3>
         <Table
-          rowSelection={rowSelection}
           columns={columns}
-          dataSource={data}
+          dataSource={availableCourses}
+          rowKey="courseId"
         />
       </div>
       {selectedCourses.length > 0 && (
         <div className="row">
           <Divider />
-          <h3>Các môn đã chọn:</h3>
-          <Table columns={columns} dataSource={selectedCourses} />
+          <h3>Lớp của các môn đã chọn:</h3>
+          <Table
+            columns={columns}
+            dataSource={courseClasses}
+            rowKey="courseId"
+          />
         </div>
       )}
+      {/* Table for displaying successfully registered courses */}
+      {/* Table for displaying courses in the waitlist */}
     </div>
   );
 }

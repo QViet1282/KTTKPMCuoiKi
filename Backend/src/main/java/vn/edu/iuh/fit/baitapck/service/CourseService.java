@@ -9,7 +9,7 @@ import java.util.List;
 public interface CourseService {
     List<CourseDTO> findAllByMajorId(Long MajorId);
 
-    List<CourseDTO> findCoursesAvailableForStudentRegistration(Long studentId);
+    List<CourseDTO> findCoursesAvailableForStudentRegistration(Long studentId, Long semesterId);
     List<CourseDTO> findCourseEnrolledByStudent(Long studentId, Long semesterId);
     List<CourseDTO> findCourseWaitListEnrolledByStudent(Long studentId);
 }
