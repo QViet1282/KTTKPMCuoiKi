@@ -8,6 +8,7 @@ import vn.edu.iuh.fit.baitapck.service.StudentService;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -31,9 +32,10 @@ public class StudentServiceImpl implements StudentService {
         Student student = studentRepository.findById(studentId).get();
         CourseClass courseClass = courseClassRepository.findById(courseClassId).get();
 
-        int totalCredits = studentRepository.getTotalCreditsByStudentIdAndSemesterId(studentId, semesterRepository.findByCourseClassId(courseClassId).getSemesterId());
+        Integer totalCredits = studentRepository.getTotalCreditsByStudentIdAndSemesterId(studentId, semesterRepository.findByCourseClassId(courseClassId).getSemesterId());
+        int credits = totalCredits != null ? totalCredits.intValue() : 0;
         Course course = courseRepository.findByCourseClassId(courseClassId);
-        if (totalCredits + course.getCreditHour() > 30) {
+        if (credits + course.getCreditHour() > 30) {
             status.set("Khong the dang ky qua 30 tin chi");
             return status.get();
         }

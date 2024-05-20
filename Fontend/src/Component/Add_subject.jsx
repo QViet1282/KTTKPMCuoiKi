@@ -85,7 +85,7 @@ function Add_subject() {
 
   const handleAddSubject = async (record) => {
     try {
-      console.log('fsg',record);
+      console.log('fsg', record);
       await axios.post('http://localhost:8080/semester-course/add', {
         courseId: record.key,
         semesterId: selectedSemester
@@ -116,15 +116,19 @@ function Add_subject() {
     }
   };
   const renderTableData = () => {
-    const filteredCourses = majorCourses.filter(
-      (course) => !selectedCourses.some((selected) => selected.courseName === course.courseName)
-    );
+    if (majorCourses) {
+      const filteredCourses = majorCourses.filter(
+        (course) => !selectedCourses.some((selected) => selected.courseName === course.courseName)
+      );
+      return filteredCourses.map((course, index) => ({
+        key: course.courseId,
+        stt: index + 1,
+        subject: course.courseName,
+      }));
+    }
 
-    return filteredCourses.map((course, index) => ({
-      key: course.courseId,
-      stt: index + 1,
-      subject: course.courseName,
-    }));
+
+
   };
 
   const renderRegisteredSubjects = () => {
@@ -152,12 +156,12 @@ function Add_subject() {
         key: "action",
         render: (_, record) => (
           <Space size="middle">
-              <Button
-                type="primary"
-                onClick={() => handleAddSubject(record)}
-              >
-                Thêm
-              </Button>
+            <Button
+              type="primary"
+              onClick={() => handleAddSubject(record)}
+            >
+              Thêm
+            </Button>
           </Space>
         ),
       },
@@ -192,7 +196,7 @@ function Add_subject() {
     ];
   };
 
-  
+
 
   return (
     <div>

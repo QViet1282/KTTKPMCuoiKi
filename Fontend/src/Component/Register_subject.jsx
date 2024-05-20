@@ -6,11 +6,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Register_subject() {
   const [availableCourses, setAvailableCourses] = useState([]);
-  const [selectedCourses, setSelectedCourses] = useState([]);
   const [courseClasses, setCourseClasses] = useState([]);
   const [userId, setUserId] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [semesters, setSemesters] = useState([]);
+  const [data, setData] = useState([]);
+  const [registeredCourses, setRegisteredCourses] = useState([]);
+  const [waitingCourses, setWaitingCourses] = useState([]);
   const fetchUser = async () => {
     const userString = await AsyncStorage.getItem("auth");
     const user = JSON.parse(userString);
@@ -18,6 +20,25 @@ function Register_subject() {
     setUserId(userId)
   };
 
+  const fetchWaitingCourses = async () => {
+    try {
+      const waitingCoursesResponse = await axios.get(`http://localhost:8080/course/student/wait-list-courses?studentId=${userId}`);
+      setWaitingCourses(waitingCoursesResponse.data);
+      console.log('Waiting Courses:', waitingCoursesResponse.data);
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
+
+  const fetchRegisteredCourses = async () => {
+    try {
+      const registeredCoursesResponse = await axios.get(`http://localhost:8080/course/student/enrolled-courses?studentId=${userId}&semesterId=${selectedSemester}`);
+      setRegisteredCourses(registeredCoursesResponse.data);
+      console.log('Registered Courses:', registeredCoursesResponse.data);
+    } catch (error) {
+      console.error("Error fetching data", error);
+    }
+  };
 
   const fetchSemester = async () => {
     try {
@@ -51,13 +72,19 @@ function Register_subject() {
 
   useEffect(() => {
     fetchUser();
-    fetchSemester()
+    fetchSemester();
+
   }, []);
 
   useEffect(() => {
-    if (selectedSemester!='')
+    if (selectedSemester !== '') {
       fetchAvailableCourses();
-  }, [userId,selectedSemester]);
+      fetchRegisteredCourses();
+      fetchWaitingCourses();
+    }
+
+
+  }, [userId, selectedSemester]);
 
   const columns = [
     {
@@ -89,11 +116,135 @@ function Register_subject() {
       ),
     },
   ];
+  const columns3 = [
+    {
+      title: "STT",
+      dataIndex: "courseId",
+      render: (text, record, index) => <span>{index + 1}</span>,
+    },
+    {
+      title: "Môn học",
+      dataIndex: "courseName",
+    },
+    {
+      title: "Học phí",
+      dataIndex: "creditFee",
+    },
+    {
+      title: "Tín chỉ",
+      dataIndex: "creditHour",
+    },
+    {
+      title: "Môn tiên quyết",
+      dataIndex: "prerequisites",
+      render: (text) => text.join(", "),
+    },
+    {
+      title: "Hành động",
+      render: (text, record) => (
+        <Button onClick={() => { }}>Xem chi tiết</Button>
+      ),
+    },
+  ];
 
-  const handleRowSelection = (record) => {
-    setSelectedCourses([...selectedCourses, record]);
+  const columns2 = [
+    {
+      title: 'ID lớp học',
+      dataIndex: 'courseClassId',
+      key: 'courseClassId',
+    },
+    {
+      title: 'Tên lớp học',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Số lượng tối đa sinh viên',
+      dataIndex: 'maxStudents',
+      key: 'maxStudents',
+    },
+    {
+      title: 'Số lượng hiện tại sinh viên',
+      dataIndex: 'currentStudents',
+      key: 'currentStudents',
+    },
+    {
+      title: 'Địa điểm',
+      dataIndex: 'location',
+      key: 'location',
+    },
+    {
+      title: 'Giảng viên',
+      dataIndex: 'instructor',
+      key: 'instructor',
+    },
+    {
+      title: 'Ngày bắt đầu',
+      dataIndex: 'startDate',
+      key: 'startDate',
+    },
+    {
+      title: 'Thứ trong tuần',
+      dataIndex: 'dayOfWeek',
+      key: 'dayOfWeek',
+    },
+    {
+      title: 'Tiết bắt đầu',
+      dataIndex: 'startPeriod',
+      key: 'startPeriod',
+    },
+    {
+      title: 'Tiết kết thúc',
+      dataIndex: 'endPeriod',
+      key: 'endPeriod',
+    },
+    {
+      title: 'Số buổi',
+      dataIndex: 'numberOfSessions',
+      key: 'numberOfSessions',
+    },
+    {
+      title: 'Hành động',
+      render: (text, record) => (
+        <Button onClick={() => handleRegister(record)}>Đăng ký</Button>
+      ),
+    },
+  ];
+
+  const handleRowSelection = async (record) => {
+    const response = await axios.get(`http://localhost:8080/semester-course/get?courseId=${record.courseId}&semesterId=${selectedSemester}`);
+    const semesterCourse = response.data[0];
+    fetchClasses(semesterCourse.semesterCourseId);
   };
-  console.log(availableCourses);
+
+  const handleRegister = async (record) => {
+    const response = await axios.post(`http://localhost:8080/student/register_course`,
+      {
+        studentId: userId,
+        courseClassId: record.courseClassId
+      }
+    );
+    fetchAvailableCourses();
+    setData([])
+    fetchRegisteredCourses();
+    fetchWaitingCourses();
+    console.log("Registering for class:", record);
+  };
+
+  const fetchClasses = async (semesterCourseId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/course-class/find-by-semester-course-id?semesterCourseId=${semesterCourseId}`);
+      const formattedData = response.data.map(item => ({
+        ...item,
+        instructor: item.instructor.name,
+      }));
+      setData(formattedData);
+      console.log('Fetched Classes:', formattedData);
+    } catch (error) {
+      console.error("Error fetching classes", error);
+    }
+  };
+
   return (
     <div>
       <div className="row mt-2">
@@ -120,19 +271,34 @@ function Register_subject() {
           rowKey="courseId"
         />
       </div>
-      {selectedCourses.length > 0 && (
-        <div className="row">
-          <Divider />
-          <h3>Lớp của các môn đã chọn:</h3>
-          <Table
-            columns={columns}
-            dataSource={courseClasses}
-            rowKey="courseId"
-          />
-        </div>
-      )}
-      {/* Table for displaying successfully registered courses */}
-      {/* Table for displaying courses in the waitlist */}
+
+      <div className="row">
+        <Divider />
+        <h3>Lớp của môn đã chọn:</h3>
+        <Table
+          columns={columns2}
+          dataSource={data}
+          rowKey="courseClassId"
+        />
+      </div>
+      <div className="row">
+        <Divider />
+        <h3>Môn đăng kí thành công:</h3>
+        <Table
+          columns={columns3}
+          dataSource={registeredCourses}
+          rowKey="courseClassId"
+        />
+      </div>
+      <div className="row">
+        <Divider />
+        <h3>Môn đăng kí vào danh sách chờ:</h3>
+        <Table
+          columns={columns3}
+          dataSource={waitingCourses}
+          rowKey="courseClassId"
+        />
+      </div>
     </div>
   );
 }

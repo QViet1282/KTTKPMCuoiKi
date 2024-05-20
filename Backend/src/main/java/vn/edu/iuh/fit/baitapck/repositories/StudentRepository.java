@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import vn.edu.iuh.fit.baitapck.entities.Student;
 
+import java.util.Optional;
+
 public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query(value = "SELECT SUM(course.credit_hour) " +
             "FROM enrollment " +
