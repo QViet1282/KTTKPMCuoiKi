@@ -77,8 +77,12 @@ function Register_subject() {
   }, []);
 
   useEffect(() => {
+    setAvailableCourses([])
     if (selectedSemester !== '') {
-      fetchAvailableCourses();
+      const selectedSemesterInfo = semesters.find(semester => semester.semesterId === selectedSemester);
+      if (selectedSemesterInfo && new Date() >= new Date(selectedSemesterInfo.startDate) && new Date() <= new Date(selectedSemesterInfo.endDate)) {
+        fetchAvailableCourses();
+      }
       fetchRegisteredCourses();
       fetchWaitingCourses();
     }
@@ -110,12 +114,20 @@ function Register_subject() {
       render: (text) => text.join(", "),
     },
     {
+      title: "Tùy chọn",
+      dataIndex: "optional",
+      render: (option) => (
+        <span>{option ? 'Tự chọn' : 'Bắt buộc'}</span>
+      ),
+    },
+    {
       title: "Hành động",
       render: (text, record) => (
         <Button onClick={() => handleRowSelection(record)}>Chọn</Button>
       ),
     },
   ];
+
   const columns3 = [
     {
       title: "STT",
@@ -138,6 +150,13 @@ function Register_subject() {
       title: "Môn tiên quyết",
       dataIndex: "prerequisites",
       render: (text) => text.join(", "),
+    },
+    {
+      title: "Tùy chọn",
+      dataIndex: "optional",
+      render: (option) => (
+        <span>{option ? 'Tự chọn' : 'Bắt buộc'}</span>
+      ),
     },
     {
       title: "Hành động",
@@ -218,18 +237,35 @@ function Register_subject() {
   };
 
   const handleRegister = async (record) => {
-    const response = await axios.post(`http://localhost:8080/student/register_course`,
-      {
-        studentId: userId,
-        courseClassId: record.courseClassId
+    // Hiển thị hộp thoại xác nhận trước khi đăng kí
+    const confirmed = window.confirm("Bạn có chắc chắn muốn đăng kí môn học này?");
+
+    if (confirmed) {
+      try {
+        // Gửi yêu cầu đăng kí
+        const response = await axios.post(`http://localhost:8080/student/register_course`,
+          {
+            studentId: userId,
+            courseClassId: record.courseClassId
+          }
+        );
+
+        alert(response.data);
+
+        fetchAvailableCourses();
+        setData([]);
+        fetchRegisteredCourses();
+        fetchWaitingCourses();
+
+        console.log("Registering for class:", record);
+      } catch (error) {
+        alert("Đã xảy ra lỗi khi đăng kí môn học. Vui lòng thử lại sau.");
       }
-    );
-    fetchAvailableCourses();
-    setData([])
-    fetchRegisteredCourses();
-    fetchWaitingCourses();
-    console.log("Registering for class:", record);
+    } else {
+      console.log("Đăng kí môn học đã bị hủy.");
+    }
   };
+
 
   const fetchClasses = async (semesterCourseId) => {
     try {
@@ -244,23 +280,26 @@ function Register_subject() {
       console.error("Error fetching classes", error);
     }
   };
-
+  console.log(semesters);
   return (
     <div>
       <div className="row mt-2">
-        <label className="col">Học kỳ: </label>
-        <Select
-          className="col w-25"
-          value={selectedSemester}
-          onChange={(value) => setSelectedSemester(value)}
-          placeholder="Chọn học kỳ"
-        >
-          {semesters.map((semester, index) => (
-            <Select.Option key={index} value={semester.semesterId}>
-              {semester.semesterName}
-            </Select.Option>
-          ))}
-        </Select>
+        <div className="col md-6">
+          <label className="col">Học kỳ:  </label>
+          <Select
+            className="col w-25"
+            value={selectedSemester}
+            onChange={(value) => setSelectedSemester(value)}
+            placeholder="Chọn học kỳ"
+          >
+            {semesters.map((semester, index) => (
+              <Select.Option key={index} value={semester.semesterId}>
+                {semester.semesterName}
+              </Select.Option>
+            ))}
+          </Select>
+        </div>
+
       </div>
       <div className="row">
         <Divider />

@@ -6,16 +6,65 @@ import Login from './Component/Login'
 import Header from './Layout/Header';
 import { BrowserRouter, Link, Outlet, Route, Router, Routes, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function App() {
   const [role, setRole] = useState('');
   const location = useLocation();
   const { state } = location;
+  const [userId, setUserId] = useState("");
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("");
+  const [studentNumber, setStudentNumber] = useState("")
+  const [major, setMajor] = useState("")
+  
+  useEffect(() => {
+    // Kiểm tra xem dữ liệu từ AsyncStorage đã tồn tại chưa
+    const fetchUserData = async () => {
+      const userString = await AsyncStorage.getItem("auth");
+      if (!userString) return; // Nếu không tồn tại, bỏ qua
+      const user = JSON.parse(userString);
+      const name = user.name;
+      const gender = user.gender;
+      setName(name);
+      setGender(gender);
+      console.log(user);
+      if (role === 'student') {
+        const studentNumber = user.studentCode;
+        const major = user.major.majorN
+        setStudentNumber(studentNumber);
+        setMajor(major);
+      }
+    };
+  
+    fetchUserData();
+  }, []);
   useEffect(() => {
     if (state && state.role) {
       setRole(state.role);
+
     }
-  }, [state]);
+    if (role)
+      fetchUser();
+  }, [state, role]);
+
+  const fetchUser = async () => {
+    const userString = await AsyncStorage.getItem("auth");
+    const user = JSON.parse(userString);
+    const name = user.name;
+    const gender = user.gender;
+
+    setName(name)
+    setGender(gender)
+    console.log(user);
+    if (role === 'student') {
+      const studentNumber = user.studentCode;
+      const major = user.major.majorName;
+
+      setStudentNumber(studentNumber)
+      setMajor(major)
+    }
+  };
   return (
     <div className="App">
       <Header />
@@ -27,18 +76,25 @@ function App() {
                 <div className="info">
                   <p>Xin chào</p>
                   <h3>
-                    <b>Huỳnh Duy Kha</b>
+                    <b>{name}</b>
                   </h3>
                   <p>
                     <span>Giới tính: </span>
-                    <span className="info-account-span">Nam</span>
+                    <span className="info-account-span">{gender}</span>
                   </p>
-                  <div>
-                    <p>
-                      <span>MSSV:</span>
-                      <span className="info-account-span">19431331</span>
-                    </p>
-                  </div>
+                  {role === 'student' && (
+                    <div>
+                      <p>
+                        <span>MSSV: </span>
+                        <span className="info-account-span">{studentNumber}</span>
+                      </p>
+                      <p>
+                        <span>Ngành: </span>
+                        <span className="info-account-span">{major}</span>
+                      </p>
+                    </div>
+                  )}
+
                   <button type="button" className="btn btn-warning">
                     <Link to="/">Đăng xuất</Link>
                   </button>

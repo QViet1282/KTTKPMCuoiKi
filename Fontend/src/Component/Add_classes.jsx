@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Button, Select } from 'antd';
+import { Table, Input, Button, Select, DatePicker } from 'antd';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Option } from 'antd/es/mentions';
+import moment from 'moment';
+
+const { Option } = Select;
 
 function AddClasses() {
   const locatio = useLocation();
@@ -11,7 +13,7 @@ function AddClasses() {
   const [maxStudents, setMaxStudents] = useState('');
   const [currentStudents, setCurrentStudents] = useState('');
   const [location, setLocation] = useState('');
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(null);
   const [dayOfWeek, setDayOfWeek] = useState('');
   const [startPeriod, setStartPeriod] = useState('');
   const [endPeriod, setEndPeriod] = useState('');
@@ -26,6 +28,7 @@ function AddClasses() {
   useEffect(() => {
     fetchTeachers();
   }, [selectedFaculty]);
+
   useEffect(() => {
     if (semesterCourse.semesterCourseId) {
       fetchClasses(semesterCourse.semesterCourseId);
@@ -49,7 +52,6 @@ function AddClasses() {
         name: item.name,
         maxStudents: item.maxStudents,
         currentStudents: item.currentStudents,
-
         location: item.location,
         instructor: item.instructor.name,
         startDate: item.startDate,
@@ -66,7 +68,6 @@ function AddClasses() {
   };
 
   const handleAddClass = async () => {
-
     const newClass = {
       semesterCourse,
       maxStudents: parseInt(maxStudents),
@@ -75,42 +76,22 @@ function AddClasses() {
         teacherId: parseInt(selectedTeacher)
       },
       name,
-      startDate,
+      startDate: startDate ? startDate.format('YYYY-MM-DD') : null,
       dayOfWeek: parseInt(dayOfWeek),
       startPeriod: parseInt(startPeriod),
       endPeriod: parseInt(endPeriod),
       numberOfSessions: parseInt(numberOfSessions)
     };
-    
+
     console.log(newClass);
     try {
-
-      
-      const response = await axios.post('http://localhost:8080/course-class/add',
-        newClass
-      );
-
+      const response = await axios.post('http://localhost:8080/course-class/add', newClass);
       const addedClass = response.data;
-      // const newFormattedData = {
-      //   key: addedClass.courseClassId,
-      //   name: addedClass.name,
-      //   maxStudents: addedClass.maxStudents,
-      //   currentStudents: addedClass.currentStudents,
-      //   location: addedClass.location,
-      //   instructor: addedClass.instructor.name,
-      //   startDate: addedClass.startDate,
-      //   dayOfWeek: addedClass.dayOfWeek,
-      //   startPeriod: addedClass.startPeriod,
-      //   endPeriod: addedClass.endPeriod,
-      //   numberOfSessions: addedClass.numberOfSessions
-      // };
-  
-      // setData(prevData => [...prevData, newFormattedData]);
       setMaxStudents('');
       setCurrentStudents('');
       setName('');
       setLocation('');
-      setStartDate('');
+      setStartDate(null);
       setDayOfWeek('');
       setStartPeriod('');
       setEndPeriod('');
@@ -179,6 +160,7 @@ function AddClasses() {
       key: 'numberOfSessions',
     },
   ];
+
   console.log(data);
   return (
     <div className="list_classes" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
@@ -201,43 +183,43 @@ function AddClasses() {
           ))}
         </Select>
         <Input
-          placeholder="Nhập Địa điểm"
+          placeholder="Nhập địa điểm"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
         <Input
-          placeholder="Nhập tên"
+          placeholder="Nhập tên lớp"
           value={name}
           onChange={(e) => setName(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
-        <Input
-          placeholder="Nhập Ngày bắt đầu"
+        <DatePicker
+          placeholder="Ngày bắt đầu"
           value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          style={{ marginBottom: '10px' }}
+          onChange={(date) => setStartDate(date)}
+          style={{ marginBottom: '10px', width: '100%' }}
         />
         <Input
-          placeholder="Nhập Ngày trong tuần"
+          placeholder="Thứ trong tuần"
           value={dayOfWeek}
           onChange={(e) => setDayOfWeek(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
         <Input
-          placeholder="Nhập Tiết bắt đầu"
+          placeholder="Tiết bắt đầu"
           value={startPeriod}
           onChange={(e) => setStartPeriod(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
         <Input
-          placeholder="Nhập Tiết kết thúc"
+          placeholder="Tiết kết thúc"
           value={endPeriod}
           onChange={(e) => setEndPeriod(e.target.value)}
           style={{ marginBottom: '10px' }}
         />
         <Input
-          placeholder="Nhập Số buổi"
+          placeholder="Số lượng buổi học"
           value={numberOfSessions}
           onChange={(e) => setNumberOfSessions(e.target.value)}
           style={{ marginBottom: '10px' }}

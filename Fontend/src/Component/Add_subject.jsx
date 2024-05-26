@@ -46,12 +46,22 @@ function Add_subject() {
   const fetchMajorById = async () => {
     try {
       const majorsResponse = await axios.get(`http://localhost:8080/major/all/departmentId?departmentId=${selectedFaculty}`);
-      setMajors(majorsResponse.data);
-      console.log('Majors:', majorsResponse.data);
+      const majorsData = majorsResponse.data;
+
+      if (Array.isArray(majorsData)) {
+        setMajors(majorsData);
+      } else {
+        console.error("Majors data is not an array", majorsData);
+        setMajors([]);
+      }
+
+      console.log('Majors:', majorsData);
     } catch (error) {
       console.error("Error fetching data", error);
+      setMajors([]); // Set majors to an empty array in case of error
     }
   };
+
 
   const fetchSemester = async () => {
     try {
@@ -124,6 +134,10 @@ function Add_subject() {
         key: course.courseId,
         stt: index + 1,
         subject: course.courseName,
+        optional: course.optional,
+        creditFee: course.creditFee,
+        creditHour: course.creditHour,
+        prerequisites: course.prerequisites.join(", ")
       }));
     }
 
@@ -136,6 +150,10 @@ function Add_subject() {
       key: item.courseId,
       stt: index + 1,
       subject: item.courseName,
+      optional: item.optional,
+      creditFee: item.creditFee,
+      creditHour: item.creditHour,
+      prerequisites: item.prerequisites.join(", ")
     }));
   };
 
@@ -150,6 +168,28 @@ function Add_subject() {
         title: "Môn học",
         dataIndex: "subject",
         key: "subject",
+      },
+      {
+        title: "Loại học phần",
+        dataIndex: "optional",
+        render: (option) => (
+          <span>{option ? 'Tự chọn' : 'Bắt buộc'}</span>
+        ),
+      },
+      {
+        title: "Học phí",
+        dataIndex: "creditFee",
+        key: "creditFee",
+      },
+      {
+        title: "Số tín chỉ",
+        dataIndex: "creditHour",
+        key: "creditHour",
+      },
+      {
+        title: "Môn tiên quyết",
+        dataIndex: "prerequisites",
+        key: "prerequisites",
       },
       {
         title: "Hành động",
@@ -178,6 +218,28 @@ function Add_subject() {
         title: "Môn học",
         dataIndex: "subject",
         key: "subject",
+      },
+      {
+        title: "Loại học phần",
+        dataIndex: "optional",
+        render: (option) => (
+          <span>{option ? 'Tự chọn' : 'Bắt buộc'}</span>
+        ),
+      },
+      {
+        title: "Học phí",
+        dataIndex: "creditFee",
+        key: "creditFee",
+      },
+      {
+        title: "Số tín chỉ",
+        dataIndex: "creditHour",
+        key: "creditHour",
+      },
+      {
+        title: "Môn tiên quyết",
+        dataIndex: "prerequisites",
+        key: "prerequisites",
       },
       {
         title: "Hành động",
@@ -266,7 +328,7 @@ function Add_subject() {
       <Divider />
 
       <div className="add_lessons2">
-        <div className="row w-75">
+        <div className="row">
           <div className="col-6 border">
             <Divider />
             <h2 className="text-primary">Các môn học</h2>

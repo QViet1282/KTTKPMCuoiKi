@@ -33,6 +33,7 @@ public class CourseServiceImpl implements CourseService {
         if (student != null) {
             List<Course> allCourses = semesterCourseRepository.findSelectedCoursesByMajorIdAndSemesterId(student.getMajor().getMajorId(),semesterId);
             List<Course> studentEnrollmented = courseRepository.findByEnrollments_Student_Id(studentId);
+            List<Course> studentEnrollmented2 = courseRepository.findByEnrollments2_Student_Id(studentId);
             List<Course> studentWaitListEnrollmented = courseRepository.findByWaitList_Enrollments_Student_Id(studentId);
             // Lọc các khóa học mà sinh viên đã đăng ký
             List<Course> availableCourses = allCourses.stream()
@@ -42,7 +43,7 @@ public class CourseServiceImpl implements CourseService {
                         // Kiểm tra nếu course có môn tiên quyết
                         if (course.getPrerequisites() != null && !course.getPrerequisites().isEmpty()) {
                             for (Course prerequisite : course.getPrerequisites()) {
-                                if (!studentEnrollmented.contains(prerequisite)) {
+                                if (!studentEnrollmented2.contains(prerequisite)) {
                                     return false; // Sinh viên chưa hoàn thành môn tiên quyết
                                 }
                             }

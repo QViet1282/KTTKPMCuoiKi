@@ -25,6 +25,8 @@ public class StudentServiceImpl implements StudentService {
     private CourseRepository courseRepository;
     @Autowired
     private WaitlistEnrollmentRepository waitlistEnrollmentRepository;
+    @Autowired
+    private EmailServiceImpl emailService;
     @Override
     public String registerCourse(Long studentId, Long courseClassId) {
         AtomicReference<String> status = new AtomicReference<>("failed");
@@ -57,6 +59,7 @@ public class StudentServiceImpl implements StudentService {
         courseClass.setCurrentStudents(courseClass.getCurrentStudents()+1);
         courseClassRepository.save(courseClass);
         status.set("Dang ky thanh cong");
+        emailService.sendEmail(student.getEmail(), "Dang ky hoc thanh cong", "Ban da dang ky hoc "+course.getCourseName()+" thanh cong");
         return status.get();
     }
 

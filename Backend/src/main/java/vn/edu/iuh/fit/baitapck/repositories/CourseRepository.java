@@ -12,7 +12,8 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @Query(value = "SELECT c.* " +
             "FROM course c " +
-            "JOIN class cc ON c.course_id = cc.semester_course_id " +
+            "JOIN semester_course sm ON c.course_id = sm.course_id " +
+            "JOIN class cc ON sm.semester_course_id = cc.semester_course_id " +
             "JOIN enrollment e ON cc.course_class_id = e.course_class_id " +
             "JOIN student s ON e.student_id = s.student_id " +
             "WHERE s.student_id = :studentId", nativeQuery = true)
@@ -20,10 +21,22 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @Query(value = "SELECT c.* " +
             "FROM course c " +
-            "JOIN class cc ON c.course_id = cc.semester_course_id " +
-            "JOIN waitlist_enrollment e ON cc.course_class_id = e.course_class_id " +
+            "JOIN semester_course sm ON c.course_id = sm.course_id " +
+            "JOIN class cc ON sm.semester_course_id = cc.semester_course_id " +
+            "JOIN enrollment e ON cc.course_class_id = e.course_class_id " +
             "JOIN student s ON e.student_id = s.student_id " +
+            "JOIN grade g ON e.enrollment_id = g.enrollment_id " +
             "WHERE s.student_id = :studentId", nativeQuery = true)
+    List<Course> findByEnrollments2_Student_Id(@Param("studentId") Long studentId);
+
+
+    @Query(value = "SELECT course.* " +
+            "FROM waitlist_enrollment " +
+            "JOIN class ON waitlist_enrollment.course_class_id = class.course_class_id " +
+            "JOIN semester_course ON class.semester_course_id = semester_course.semester_course_id " +
+            "JOIN course ON semester_course.course_id = course.course_id " +
+            "JOIN semester ON semester_course.semester_id = semester.semester_id " +
+            "WHERE waitlist_enrollment.student_id = :studentId ", nativeQuery = true)
     List<Course> findByWaitList_Enrollments_Student_Id(@Param("studentId") Long studentId);
 
     @Query(value = "SELECT s.* FROM course s " +
